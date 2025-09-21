@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abbort Controller</title>
+</head>
+
+<body>
+
+  <h1>Abort Controller Panel</h1>
+
+  <button id="start">Start API Call</button>
+  <button id="stop">Stop API Call</button>
+
+  <pre id="status"></pre>
+
+  <script>
+    let controller;
+    let timeoutId;
+
+    const start = document.getElementById("start");
+    const stop = document.getElementById("stop");
+    const status = document.getElementById("status");
+
+
+    start.addEventListener("click", () => {
+      controller = new AbortController();
+
+      const signal = controller.signal;
+      status.textContent = "Feaching the data please wait...";
+
+      fetch("https://fakestoreapi.com/products/1", { signal })
+        .then((res) => res.json())
+        .then((data) => {
+          timeoutId = setTimeout(() => {
+            status.textContent = JSON.stringify(data, null, 2);
+          }, 5000);
+        })
+        .catch((err) => {
+          if (err.name == "AbortError") {
+            clearTimeout(timeoutId);
+            status.textContent = "fetch requested is Aborted";
+          } else {
+            status.textContent = err.message;
+          }
+        });
+    });
+
+    stop.addEventListener("click", () => {
+      if (controller) {
+        controller.abort();
+      }
+      clearTimeout(timeoutId);
+      status.textContent = "fetch requested is Aborted";
+    });
+
+  </script>
+</body>
+
+</html>
